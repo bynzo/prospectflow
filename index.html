@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProspectFlow CRM</title>
+    <!-- Load Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Load Chart.js for statistics graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Link to the custom CSS file -->
+    <link rel="stylesheet" href="styles/main.css">
+    
+    <!-- PWA manifest file -->
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+    <div class="app-shell mx-auto">
+        <!-- Header -->
+        <header class="bg-violet-700 text-white p-4 text-center shadow-lg">
+            <h1 class="text-2xl font-bold">ProspectFlow</h1>
+        </header>
+
+        <!-- Main content container -->
+        <main id="app-container" class="scroll-container">
+            <!-- Content will be dynamically injected here -->
+        </main>
+
+        <!-- Floating Action Button -->
+        <button id="add-button" class="fixed bottom-[80px] right-6 w-14 h-14 rounded-full bg-orange-400 text-white text-3xl flex items-center justify-center shadow-lg transform transition-transform duration-200 hover:scale-110 active:scale-95 z-50">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        </button>
+
+        <!-- Bottom Navigation -->
+        <nav id="bottom-nav" class="bg-white border-t border-gray-200 flex justify-around p-2 shadow-inner z-40">
+            <button data-view="accounts" class="flex-1 flex flex-col items-center p-2 text-gray-500 hover:text-violet-700 transition-colors">
+                <span class="icon text-2xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-briefcase"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                </span>
+                <span class="text-xs font-semibold">Accounts</span>
+            </button>
+            <button data-view="todos" class="flex-1 flex flex-col items-center p-2 text-gray-500 hover:text-violet-700 transition-colors">
+                <span class="icon text-2xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-todo"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="m13 12-2 2-4-4"/><path d="M12.5 10.5 16 14"/><path d="m15 11-4 4"/><rect x="13" y="13" width="6" height="6" rx="1"/><path d="M13 7h8"/><path d="M13 17h8"/></svg>
+                </span>
+                <span class="text-xs font-semibold">To-Dos</span>
+            </button>
+            <button data-view="stats" class="flex-1 flex flex-col items-center p-2 text-gray-500 hover:text-violet-700 transition-colors">
+                <span class="icon text-2xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-line-chart"><path d="M3 3v18h18"/><path d="m18 17-6-6-6 6"/><path d="m12 11 6-6"/></svg>
+                </span>
+                <span class="text-xs font-semibold">Stats</span>
+            </button>
+        </nav>
+
+        <!-- Custom Modal for confirmations and inputs -->
+        <div id="custom-modal" class="modal-overlay">
+            <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm flex flex-col items-center">
+                <div id="modal-message" class="text-lg text-center mb-4 text-gray-700"></div>
+                <input type="text" id="modal-input" class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 hidden" placeholder="YYYY-MM-DD">
+                <div class="flex gap-4">
+                    <button id="modal-confirm" class="bg-violet-600 text-white font-semibold py-2 px-6 rounded-full hover:bg-violet-700 transition-colors">Confirm</button>
+                    <button id="modal-cancel" class="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-full hover:bg-gray-300 transition-colors">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link to the custom JavaScript files -->
+    <script src="scripts/db.js"></script>
+    <script src="scripts/app.js"></script>
+    <script>
+        // Register the service worker to enable offline functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(registration => {
+                    console.log('SW registered: ', registration);
+                }).catch(registrationError => {
+                    console.log('SW registration failed: ', registrationError);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
