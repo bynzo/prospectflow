@@ -137,10 +137,10 @@ const db = {
         interactionData.timestamp = new Date().toISOString();
         prospect.interactions.push(interactionData);
 
-        if (interactionData.type === 'Cold Call') this._db.stats.coldCalls++;
+        if (interactionData.type === 'Call') this._db.stats.coldCalls++;
         if (interactionData.type === 'Email') this._db.stats.emailsSent++;
-        if (interactionData.type === 'LinkedIn Message') this._db.stats.linkedinMessages++;
-        if (interactionData.feedback === 'Book Next Meeting') this._db.stats.successfulInteractions++;
+        if (interactionData.type === 'LinkedIn') this._db.stats.linkedinMessages++;
+        if (interactionData.feedback === 'Book Next Meeting' || interactionData.feedback === 'Successful qualification') this._db.stats.successfulInteractions++;
         
         if (toDoItem) {
             toDoItem.id = crypto.randomUUID();

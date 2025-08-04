@@ -45,14 +45,15 @@
             </button>
             <button data-view="prospects" class="flex-1 flex flex-col items-center p-2 text-gray-500 hover:text-violet-700 transition-colors">
                 <span class="icon text-2xl">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-2"><path d="M14.5 2a3.25 3.25 0 0 0-6.5 0v3h6.5z"/><path d="M12 5v18"/><path d="M10 13h4"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users-2"><path d="M14 19a6 6 0 0 0-12 0"/><circle cx="8" cy="9" r="4"/><path d="M22 19a6 6 0 0 0-6-6h-1"/><circle cx="16" cy="9" r="2"/></svg>
                 </span>
                 <span class="text-xs font-semibold">Prospects</span>
             </button>
-            <button data-view="todos" class="flex-1 flex flex-col items-center p-2 text-gray-500 hover:text-violet-700 transition-colors">
+            <button data-view="todos" class="relative flex-1 flex flex-col items-center p-2 text-gray-500 hover:text-violet-700 transition-colors">
                 <span class="icon text-2xl">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-todo"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="m13 12-2 2-4-4"/><path d="M12.5 10.5 16 14"/><path d="m15 11-4 4"/><rect x="13" y="13" width="6" height="6" rx="1"/><path d="M13 7h8"/><path d="M13 17h8"/></svg>
                 </span>
+                <span id="todo-badge" class="absolute top-1 right-10 w-2 h-2 rounded-full bg-red-500 hidden"></span>
                 <span class="text-xs font-semibold">To-Dos</span>
             </button>
             <button data-view="stats" class="flex-1 flex flex-col items-center p-2 text-gray-500 hover:text-violet-700 transition-colors">

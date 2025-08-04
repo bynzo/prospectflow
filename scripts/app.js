@@ -16,7 +16,8 @@ const App = {
         modalMessage: document.getElementById('modal-message'),
         modalConfirm: document.getElementById('modal-confirm'),
         modalCancel: document.getElementById('modal-cancel'),
-        modalInput: document.getElementById('modal-input')
+        modalInput: document.getElementById('modal-input'),
+        todoBadge: document.getElementById('todo-badge')
     },
 
     // A reference to the database functions
@@ -74,9 +75,16 @@ const App = {
     },
     
     /**
-     * Updates the active state of the bottom navigation buttons.
+     * Updates the active state of the bottom navigation buttons and the to-do badge.
      */
     updateNavButtons() {
+        const pendingToDos = this.db.getDB().toDos.filter(todo => !todo.completed).length;
+        if (pendingToDos > 0) {
+            this.elements.todoBadge.classList.remove('hidden');
+        } else {
+            this.elements.todoBadge.classList.add('hidden');
+        }
+
         document.querySelectorAll('#bottom-nav button').forEach(button => {
             if (button.dataset.view === this.state.currentView) {
                 button.classList.add('text-violet-700');
@@ -98,14 +106,34 @@ const App = {
             this.elements.addButton.style.display = 'none';
         }
     },
-
+    
+    /**
+     * Helper function to get an icon for an interaction type.
+     * @param {string} type The interaction type.
+     * @returns {string} The SVG icon.
+     */
+    getInteractionIcon(type) {
+        switch (type) {
+            case 'Call':
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone-call"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/><path d="M14.05 2a9 9 0 0 1 8 7.94"/><path d="M18.18 2a15 15 0 0 1 4 11.94"/></svg>`;
+            case 'Email':
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 7L2 7"/></svg>`;
+            case 'LinkedIn':
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>`;
+            case 'Meeting':
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-check"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 14 2 2 4-4"/></svg>`;
+            default:
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-help-circle"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-2 3-3 3"/><path d="M12 17h.01"/></svg>`;
+        }
+    },
+    
     // --- View Rendering Functions ---
     renderAccountsList() {
         const dbData = this.db.getDB();
         const accountsHtml = dbData.accounts.map(account => `
             <div class="bg-white p-4 rounded-xl shadow-sm mb-4 cursor-pointer hover:bg-gray-50 transition-colors animated-card" data-id="${account.id}" data-type="account">
                 <h4 class="text-lg font-semibold text-gray-800">${account.companyName}</h4>
-                <small class="text-sm text-gray-500">${account.industry}</small>
+                <small class="text-sm text-gray-500">${account.industry} <span class="ml-2 text-violet-500 font-bold">${account.prospects?.length || 0} Prospects</span></small>
             </div>
         `).join('');
 
@@ -131,16 +159,17 @@ const App = {
 
         // Helper to get sort priority based on last interaction
         const getSortPriority = (prospect) => {
-            const lastInteraction = (prospect.interactions || []).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
-            const feedback = lastInteraction ? lastInteraction.feedback : 'No Interaction';
+            const latestInteraction = (prospect.interactions || []).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+            const feedback = latestInteraction ? latestInteraction.feedback : 'No Interaction';
 
             switch (feedback) {
-                case 'Book Next Meeting': return 0;
-                case 'Send More Information': return 1;
-                case 'No Answer': return 2;
-                case 'No Interaction': return 3;
-                case 'Not Interested': return 4;
-                default: return 5;
+                case 'Successful qualification': return 0;
+                case 'Book Next Meeting': return 1;
+                case 'Send More Information': return 2;
+                case 'No Answer': return 3;
+                case 'No Interaction': return 4;
+                case 'Not Interested': return 5;
+                default: return 6;
             }
         };
 
@@ -148,12 +177,33 @@ const App = {
             return getSortPriority(a) - getSortPriority(b);
         });
 
-        const prospectsHtml = sortedProspects.map(prospect => `
-            <div class="bg-white p-4 rounded-xl shadow-sm mb-4 cursor-pointer hover:bg-gray-50 transition-colors animated-card" data-account-id="${prospect.accountId}" data-prospect-id="${prospect.id}" data-type="prospect-list">
-                <h4 class="text-lg font-semibold text-gray-800">${prospect.fullName}</h4>
-                <small class="text-sm text-gray-500">${prospect.position} at ${this.db.getAccountById(prospect.accountId)?.companyName || 'N/A'}</small>
-            </div>
-        `).join('');
+        const prospectsHtml = sortedProspects.map(prospect => {
+            const latestInteraction = (prospect.interactions || []).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+            const interactionCount = prospect.interactions?.length || 0;
+            let interactionInfoHtml;
+            if (latestInteraction) {
+                const icon = this.getInteractionIcon(latestInteraction.type);
+                interactionInfoHtml = `
+                    <div class="flex items-center text-sm text-gray-600 mt-2">
+                        <span class="mr-2 text-violet-600">${icon}</span>
+                        <span class="font-medium">${latestInteraction.feedback}</span>
+                    </div>
+                `;
+            } else {
+                interactionInfoHtml = `<span class="text-sm text-gray-500 mt-2">Not contacted yet.</span>`;
+            }
+
+            return `
+                <div class="bg-white p-4 rounded-xl shadow-sm mb-4 cursor-pointer hover:bg-gray-50 transition-colors animated-card" data-account-id="${prospect.accountId}" data-prospect-id="${prospect.id}" data-type="prospect-list">
+                    <h4 class="text-lg font-semibold text-gray-800">${prospect.fullName}</h4>
+                    <small class="text-sm text-gray-500">${prospect.position} at ${this.db.getAccountById(prospect.accountId)?.companyName || 'N/A'}</small>
+                    <div class="flex justify-between items-center mt-2">
+                        ${interactionInfoHtml}
+                        <span class="text-sm text-gray-500 font-medium">${interactionCount} interactions</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
 
         this.elements.appContainer.innerHTML = `
             <div class="px-2">
@@ -286,7 +336,15 @@ const App = {
 
     renderProspectDetails(accountId, prospectId) {
         const prospect = this.db.getProspectById(accountId, prospectId);
-        if (!prospect) { this.renderView('account-details', accountId); return; }
+        if (!prospect) {
+            // Check if coming from the all prospects page
+            if (this.state.currentView === 'prospects') {
+                this.renderView('prospects');
+            } else {
+                this.renderView('account-details', accountId);
+            }
+            return;
+        }
         this.state.selectedAccountId = accountId;
         this.state.selectedProspectId = prospectId;
 
@@ -300,9 +358,12 @@ const App = {
                 <p class="text-sm text-gray-600 mt-2">${interaction.notes || 'No notes.'}</p>
             </div>
         `).join('');
+        
+        // Determine the back button action based on the previous view
+        const backButtonAction = this.state.currentView === 'prospects' ? 'back-to-prospects' : 'back-to-account-details';
 
         this.elements.appContainer.innerHTML = `
-            <button class="flex items-center text-gray-500 hover:text-violet-700 transition-colors mb-4 px-2" data-action="back-to-account-details">
+            <button class="flex items-center text-gray-500 hover:text-violet-700 transition-colors mb-4 px-2" data-action="${backButtonAction}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left mr-1"><path d="m15 18-6-6 6-6"/></svg>
                 Back
             </button>
@@ -326,10 +387,10 @@ const App = {
                         <div class="mb-4">
                             <label for="interactionType" class="block text-sm font-medium text-gray-700 mb-1">Type of Interaction</label>
                             <select id="interactionType" name="type" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500">
-                                <option value="Cold Call">Cold Call</option>
+                                <option value="Call">Call</option>
                                 <option value="Email">Email</option>
-                                <option value="LinkedIn Message">LinkedIn Message</option>
                                 <option value="Meeting">Meeting</option>
+                                <option value="LinkedIn">LinkedIn</option>
                             </select>
                         </div>
                         <div class="mb-4">
@@ -339,6 +400,7 @@ const App = {
                                 <option value="Not Interested">Not Interested</option>
                                 <option value="Send More Information">Send More Information</option>
                                 <option value="Book Next Meeting">Book Next Meeting</option>
+                                <option value="Successful qualification">Successful qualification</option>
                             </select>
                         </div>
                         <div class="mb-4 hidden" id="deadline-input-group">
@@ -363,7 +425,8 @@ const App = {
         // Add event listener for the feedback dropdown
         document.getElementById('interactionFeedback').addEventListener('change', (e) => {
             const deadlineGroup = document.getElementById('deadline-input-group');
-            if (e.target.value === 'Send More Information' || e.target.value === 'Book Next Meeting') {
+            const requiresDeadline = ['Send More Information', 'Book Next Meeting'].includes(e.target.value);
+            if (requiresDeadline) {
                 deadlineGroup.classList.remove('hidden');
             } else {
                 deadlineGroup.classList.add('hidden');
@@ -433,7 +496,7 @@ const App = {
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Cold Calls', 'Emails', 'LinkedIn'],
+                labels: ['Calls', 'Emails', 'LinkedIn'],
                 datasets: [{
                     label: 'Number of Interactions',
                     data: [stats.coldCalls, stats.emailsSent, stats.linkedinMessages],
@@ -542,6 +605,8 @@ const App = {
                 this.renderView('accounts');
             } else if (action === 'back-to-account-details') {
                 this.renderView('account-details', this.state.selectedAccountId);
+            } else if (action === 'back-to-prospects') {
+                this.renderView('prospects');
             } else if (action === 'edit-account') {
                 this.renderView('add-account', this.state.selectedAccountId);
             } else if (action === 'delete-account') {
