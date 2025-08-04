@@ -52,6 +52,9 @@ const App = {
             case 'account-details':
                 this.renderAccountDetails(data);
                 break;
+            case 'prospects':
+                this.renderProspectsList();
+                break;
             case 'add-prospect':
                 this.renderProspectForm(data, data2);
                 break;
@@ -110,6 +113,52 @@ const App = {
             <div class="px-2">
                 <h2 class="text-2xl font-bold mb-6 text-gray-800">Accounts</h2>
                 <div>${accountsHtml || '<p class="text-gray-500 text-center mt-8">No accounts added yet. Tap the + to add one!</p>'}</div>
+            </div>
+        `;
+    },
+
+    renderProspectsList() {
+        const dbData = this.db.getDB();
+        const allProspects = [];
+        dbData.accounts.forEach(account => {
+            (account.prospects || []).forEach(prospect => {
+                allProspects.push({
+                    ...prospect,
+                    accountId: account.id
+                });
+            });
+        });
+
+        // Helper to get sort priority based on last interaction
+        const getSortPriority = (prospect) => {
+            const lastInteraction = (prospect.interactions || []).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+            const feedback = lastInteraction ? lastInteraction.feedback : 'No Interaction';
+
+            switch (feedback) {
+                case 'Book Next Meeting': return 0;
+                case 'Send More Information': return 1;
+                case 'No Answer': return 2;
+                case 'No Interaction': return 3;
+                case 'Not Interested': return 4;
+                default: return 5;
+            }
+        };
+
+        const sortedProspects = allProspects.sort((a, b) => {
+            return getSortPriority(a) - getSortPriority(b);
+        });
+
+        const prospectsHtml = sortedProspects.map(prospect => `
+            <div class="bg-white p-4 rounded-xl shadow-sm mb-4 cursor-pointer hover:bg-gray-50 transition-colors animated-card" data-account-id="${prospect.accountId}" data-prospect-id="${prospect.id}" data-type="prospect-list">
+                <h4 class="text-lg font-semibold text-gray-800">${prospect.fullName}</h4>
+                <small class="text-sm text-gray-500">${prospect.position} at ${this.db.getAccountById(prospect.accountId)?.companyName || 'N/A'}</small>
+            </div>
+        `).join('');
+
+        this.elements.appContainer.innerHTML = `
+            <div class="px-2">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">All Prospects</h2>
+                <div>${prospectsHtml || '<p class="text-gray-500 text-center mt-8">No prospects added yet.</p>'}</div>
             </div>
         `;
     },
@@ -485,6 +534,10 @@ const App = {
                 this.renderView('account-details', id);
             } else if (type === 'prospect') {
                 this.renderView('prospect-details', this.state.selectedAccountId, id);
+            } else if (type === 'prospect-list') {
+                const accountId = target.dataset.accountId || target.closest('[data-account-id]')?.dataset.accountId;
+                const prospectId = target.dataset.prospectId || target.closest('[data-prospect-id]')?.dataset.prospectId;
+                this.renderView('prospect-details', accountId, prospectId);
             } else if (action === 'back-to-accounts') {
                 this.renderView('accounts');
             } else if (action === 'back-to-account-details') {
